@@ -15,13 +15,9 @@ defmodule TurboCounter.Counters.Counter do
     |> validate_required(:name)
     |> validate_exclusion(
         :name,
-        counter_names(counters),
+        counters,
         message: "can't be repeated")
     |> validate_length(:name, min: 3, max: 20)
-  end
-
-  defp counter_names(counters) do
-    counters |> Enum.map(&(&1.name))
   end
 
   def clear(counter) do

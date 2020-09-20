@@ -26,8 +26,8 @@ defmodule TurboCounterWeb.CounterLive do
       <%= live_component(
         @socket,
         CounterComponent,
-        id: counter.name,
-        counter: counter
+        id: counter["name"],
+        counter: counter["name"]
        ) %>
     <% end %>
     </table>
@@ -60,10 +60,10 @@ defmodule TurboCounterWeb.CounterLive do
       assign(socket, changeset: changeset)
   end
 
-  defp add_counter(socket, counter_params) do
+  defp add_counter(socket, counter_name) do
     if socket.assigns.changeset.valid? do
       socket
-      |> assign(counters: Counters.add_counter(socket.assigns.counters, counter_params))
+      |> assign(counters: Counters.add_counter(socket.assigns.counters, counter_name))
       |> new_changeset()
     else
       socket
@@ -76,22 +76,7 @@ defmodule TurboCounterWeb.CounterLive do
     {:noreply, validate(socket, params)}
   end
 
-  def handle_event("save", %{"counter" => params}, socket) do
-    {:noreply, add_counter(socket, params)}
-  end
-
-  def handle_info({:updated_counter, counter_socket}, socket) do
-    counters = update_counters(
-      counter_socket.assigns.counter,
-      socket.assigns.counters
-    )
-    {:noreply, assign(socket, counters: counters)}
-  end
-
-  defp update_counters(counter, counters) do
-    counters
-    |> Enum.map(fn x ->
-      if x.name == counter.name, do: counter, else: x
-    end)
+  def handle_event("save", %{"counter" => name}, socket) do
+    {:noreply, add_counter(socket, name)}
   end
 end

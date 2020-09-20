@@ -3,18 +3,19 @@ defmodule TurboCounter.Counters do
 
   def new, do: []
 
-  def add_counter(counters, params) do
-    [Counter.new(params) | counters]
+  def add_counter(counters, name) do
+    [name | counters]
   end
 
   def validate_new_counter(counters, new_counter_params) do
     Counter.new_change(new_counter_params, counters)
   end
 
-  # def delete_counter(counters, name) do
-  #   Map.delete(counters, name)
-  # end
+  def update_name(counter, name) do
+    Map.put(counter, :name, name)
+  end
 
+  def new_counter(), do: Counter.new()
   def clear(counter), do: Counter.clear(counter)
   def inc(counter), do: Counter.inc(counter)
   def dec(counter), do: Counter.dec(counter)

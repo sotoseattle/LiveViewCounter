@@ -3,13 +3,13 @@ defmodule TurboCounterWeb.CounterComponent do
   alias TurboCounter.Counters
 
   def mount(socket) do
-    {:ok, socket}
+    {:ok, assign(socket, counter: Counters.new_counter())}
   end
 
   def update(assigns, socket) do
     {
       :ok,
-      assign(socket, counter: assigns.counter)
+      assign(socket, counter: Counters.update_name(socket.assigns.counter, assigns.counter))
     }
   end
 
@@ -55,17 +55,14 @@ defmodule TurboCounterWeb.CounterComponent do
   end
 
   def handle_event("increase", _, socket) do
-    send self(), {:updated_counter, increase_counter(socket)}
-    {:noreply, socket}
+    {:noreply, increase_counter(socket)}
   end
 
   def handle_event("decrease", _, socket) do
-    send self(), {:updated_counter, decrease_counter(socket)}
-    {:noreply, socket}
+    {:noreply, decrease_counter(socket)}
   end
 
   def handle_event("reset", _, socket) do
-    send self(), {:updated_counter, reset_counter(socket)}
-    {:noreply, socket}
+    {:noreply, reset_counter(socket)}
   end
 end
