@@ -2,6 +2,7 @@ defmodule TurboCounterWeb.CounterLive do
   use TurboCounterWeb, :live_view
 
   alias TurboCounter.Counters
+  alias TurboCounterWeb.CounterComponent
 
   def mount(_params, _session, socket) do
     {:ok, socket |> new() |> new_changeset()}
@@ -23,21 +24,7 @@ defmodule TurboCounterWeb.CounterLive do
 
     <table>
     <%= for counter <- @counters do %>
-      <tr>
-        <td><%= counter.name %> </td><td> <%= counter.count %></td>
-
-        <td>
-        <button phx-click="increase" phx-value-counter="<%= counter.name %>">
-        +
-        </button>
-        | <button phx-click="decrease" phx-value-counter="<%= counter.name %>">
-        -
-        </button>
-        | <button phx-click="reset" phx-value-counter="<%= counter.name %>">
-        Clear
-        </button>
-        </td>
-      </tr>
+      <%= live_component @socket, CounterComponent, counter: counter %>
     <% end %>
     </table>
 
