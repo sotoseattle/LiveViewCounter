@@ -15,7 +15,7 @@ defmodule TurboCounter.Counters do
   #   Map.delete(counters, name)
   # end
 
-  def clear(counters, name), do: Counter.clear(name, counters)
-  def inc(counters, name), do: Counter.inc(name, counters)
-  def dec(counters, name), do: Counter.dec(name, counters)
+  def clear(counter), do: Counter.clear(counter)
+  def inc(counter), do: Counter.inc(counter)
+  def dec(counter), do: Counter.dec(counter)
 end

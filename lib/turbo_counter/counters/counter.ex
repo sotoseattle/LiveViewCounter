@@ -24,28 +24,15 @@ defmodule TurboCounter.Counters.Counter do
     counters |> Enum.map(&(&1.name))
   end
 
-  defp fetch_counter(name, counters) do
-    counters |> Enum.find(&(&1.name == name))
+  def clear(counter) do
+    Map.put(counter, :count, 0)
   end
 
-  defp substitute(counter, counters) do
-    counters
-    |> Enum.map(fn x ->
-      if x.name == counter.name, do: counter, else: x
-    end)
+  def inc(counter) do
+    Map.put(counter, :count, counter.count + 1)
   end
 
-  def clear(name, counters) do
-    name |> fetch_counter(counters) |> Map.put(:count, 0) |> substitute(counters)
-  end
-
-  def inc(name, counters) do
-    c = fetch_counter(name, counters)
-    Map.put(c, :count, c.count + 1) |> substitute(counters)
-  end
-
-  def dec(name, counters) do
-    c = fetch_counter(name, counters)
-    Map.put(c, :count, c.count - 1) |> substitute(counters)
+  def dec(counter) do
+    Map.put(counter, :count, counter.count - 1)
   end
 end

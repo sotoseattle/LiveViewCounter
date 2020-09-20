@@ -21,10 +21,14 @@ defmodule TurboCounterWeb.CounterLive do
   def render(assigns) do
     ~L"""
     <h1>Counters</h1>
-
     <table>
     <%= for counter <- @counters do %>
-      <%= live_component @socket, CounterComponent, counter: counter %>
+      <%= live_component(
+        @socket,
+        CounterComponent,
+        id: counter.name,
+        counter: counter
+       ) %>
     <% end %>
     </table>
 
@@ -66,18 +70,6 @@ defmodule TurboCounterWeb.CounterLive do
     end
   end
 
-  defp increase_counter(socket, name) do
-    assign(socket, counters: Counters.inc(socket.assigns.counters, name))
-  end
-
-  defp decrease_counter(socket, name) do
-    assign(socket, counters: Counters.dec(socket.assigns.counters, name))
-  end
-
-  defp reset_counter(socket, name) do
-    assign(socket, counters: Counters.clear(socket.assigns.counters, name))
-  end
-
   # EVENT HANDLERS
 
   def handle_event("validate", %{"counter" => params}, socket) do
@@ -88,15 +80,18 @@ defmodule TurboCounterWeb.CounterLive do
     {:noreply, add_counter(socket, params)}
   end
 
-  def handle_event("increase", %{"counter" => name}, socket) do
-    {:noreply, increase_counter(socket, name)}
+  def handle_info({:updated_counter, counter_socket}, socket) do
+    counters = update_counters(
+      counter_socket.assigns.counter,
+      socket.assigns.counters
+    )
+    {:noreply, assign(socket, counters: counters)}
   end
 
-  def handle_event("decrease", %{"counter" => name}, socket) do
-    {:noreply, decrease_counter(socket, name)}
-  end
-
-  def handle_event("reset", %{"counter" => name}, socket) do
-    {:noreply, reset_counter(socket, name)}
+  defp update_counters(counter, counters) do
+    counters
+    |> Enum.map(fn x ->
+      if x.name == counter.name, do: counter, else: x
+    end)
   end
 end
