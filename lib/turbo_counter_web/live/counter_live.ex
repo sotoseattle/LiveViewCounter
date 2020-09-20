@@ -4,36 +4,42 @@ defmodule TurboCounterWeb.CounterLive do
   alias TurboCounter.Counters
 
   def mount(_params, _session, socket) do
-    {:ok, new(socket)}
+    {:ok, socket |> new() |> new_changeset()}
   end
 
   defp new(socket) do
-    params    = %{}
-    counters  = Counters.new()
-    changeset = Counters.validate_new_counter(counters, params)
+    assign(socket, counters: Counters.new())
+  end
 
-    assign(socket, counters: counters, changeset: changeset)
+  defp new_changeset(socket) do
+    assign(
+      socket,
+      changeset: Counters.validate_new_counter(socket.assigns.counters, %{}))
   end
 
   def render(assigns) do
     ~L"""
     <h1>Counters</h1>
-    <ul>
-    <%= for {counter_name, v} <- @counters do %>
-    <li>
-    <%= counter_name %> : <%= v %>
-    <button phx-click="advance_count" phx-value-counter="<%= counter_name %>">
-    +
-    </button>
-    <button phx-click="reverse_count" phx-value-counter="<%= counter_name %>">
-    -
-    </button>
-    <button phx-click="clear_count" phx-value-counter="<%= counter_name %>">
-    Clear
-    </button>
-    </li>
+
+    <table>
+    <%= for counter <- @counters do %>
+      <tr>
+        <td><%= counter.name %> </td><td> <%= counter.count %></td>
+
+        <td>
+        <button phx-click="increase" phx-value-counter="<%= counter.name %>">
+        +
+        </button>
+        | <button phx-click="decrease" phx-value-counter="<%= counter.name %>">
+        -
+        </button>
+        | <button phx-click="reset" phx-value-counter="<%= counter.name %>">
+        Clear
+        </button>
+        </td>
+      </tr>
     <% end %>
-    </ul>
+    </table>
 
     <div>
       <%= f = form_for @changeset, "#",
@@ -44,36 +50,12 @@ defmodule TurboCounterWeb.CounterLive do
         <%= text_input f, :name %>
         <%= error_tag f, :name %>
 
-        <%= submit "Add counter", phx_disable_with: "Adding..." %>
+        <%= submit "Add counter",
+            phx_disable_with: "Adding...",
+            disabled: !@changeset.valid? %>
       </form>
     </div>
     """
-  end
-
-  # EVENT HANDLERS
-
-  def handle_event("validate", %{"counter" => params}, socket) do
-    {:noreply, validate(socket, params)}
-  end
-
-  def handle_event("save", %{"counter" => params}, socket) do
-    {:noreply, assign(socket, counters: add(socket, params))}
-  end
-
-  # def handle_event("add_counter", %{"counter" => params}, socket) do
-  #   {:noreply, assign(socket, counters: add(socket, params))}
-  # end
-
-  def handle_event("advance_count", %{"counter" => name}, socket) do
-    {:noreply, assign(socket, counters: inc(socket, name))}
-  end
-
-  def handle_event("reverse_count", %{"counter" => name}, socket) do
-    {:noreply, assign(socket, counters: dec(socket, name))}
-  end
-
-  def handle_event("clear_count", %{"counter" => name}, socket) do
-    {:noreply, assign(socket, counters: clear(socket, name))}
   end
 
   # INTERFACE WITH CORE
@@ -87,19 +69,47 @@ defmodule TurboCounterWeb.CounterLive do
       assign(socket, changeset: changeset)
   end
 
-  defp inc(socket, name) do
-    Counters.tick(socket.assigns.counters, name)
+  defp add_counter(socket, counter_params) do
+    if socket.assigns.changeset.valid? do
+      socket
+      |> assign(counters: Counters.add_counter(socket.assigns.counters, counter_params))
+      |> new_changeset()
+    else
+      socket
+    end
   end
 
-  defp dec(socket, name) do
-    Counters.back(socket.assigns.counters, name)
+  defp increase_counter(socket, name) do
+    assign(socket, counters: Counters.inc(socket.assigns.counters, name))
   end
 
-  defp add(socket, counter_params) do
-    Counters.add_counter(socket.assigns.counters, counter_params)
+  defp decrease_counter(socket, name) do
+    assign(socket, counters: Counters.dec(socket.assigns.counters, name))
   end
 
-  defp clear(socket, name) do
-    Counters.clear(socket.assigns.counters, name)
+  defp reset_counter(socket, name) do
+    assign(socket, counters: Counters.clear(socket.assigns.counters, name))
+  end
+
+  # EVENT HANDLERS
+
+  def handle_event("validate", %{"counter" => params}, socket) do
+    {:noreply, validate(socket, params)}
+  end
+
+  def handle_event("save", %{"counter" => params}, socket) do
+    {:noreply, add_counter(socket, params)}
+  end
+
+  def handle_event("increase", %{"counter" => name}, socket) do
+    {:noreply, increase_counter(socket, name)}
+  end
+
+  def handle_event("decrease", %{"counter" => name}, socket) do
+    {:noreply, decrease_counter(socket, name)}
+  end
+
+  def handle_event("reset", %{"counter" => name}, socket) do
+    {:noreply, reset_counter(socket, name)}
   end
 end
